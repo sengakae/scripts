@@ -1,3 +1,9 @@
+/* Script to add all songs in a playlist to user's library
+ * 1. Open the target playlist
+ * 2. Open the developer console
+ * 3. Copy the code below and paste it into the console
+ */
+
 var playlist = document.body.querySelector(".style-scope.ytmusic-section-list-renderer.fullbleed");
 var song = playlist.querySelectorAll(".dropdown-trigger.style-scope.ytmusic-menu-renderer");
 
