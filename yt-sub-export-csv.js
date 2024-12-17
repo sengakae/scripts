@@ -27,6 +27,7 @@ for (var i = 0; i < subscriptions.children.length; i++) {
 
 var csvContent = csvRows.map(row => row.map(value => `"${value}"`).join(",")).join("\n");
 
+// To show non-ASCII chars
 var utf8Bom = "\uFEFF";
 var blob = new Blob([utf8Bom + csvContent], { type: 'text/csv;charset=utf-8;' });
 
