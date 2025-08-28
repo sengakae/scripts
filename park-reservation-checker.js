@@ -17,11 +17,26 @@
   // Which date(s) to check
   const TARGET_DATES = ["2025-08-30"];
 
+  // Telegram credentials to sent notification
+  const TELEGRAM_BOT_TOKEN = "";
+  const TELEGRAM_CHAT_ID = "";
+
   const POLL_INTERVAL = 3000;
-    
+
   const alarm = new Audio(
     "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
   );
+
+  function sendTelegramMessage(message) {
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+      console.log("Telegram credentials not set. Skipping message.");
+      return;
+    }
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}`;
+    fetch(url)
+      .then(() => console.log("Telegram message sent:", message))
+      .catch((err) => console.warn("Telegram message failed:", err));
+  }
 
   function notify(message) {
     if (Notification.permission === "granted") {
@@ -44,14 +59,17 @@
       let found = false;
       for (const date of TARGET_DATES) {
         const info = data[date]?.DAY;
-        if (info && info.capacity && info.capacity.toLowerCase() !== "full") {            
+        if (info && info.capacity && info.capacity.toLowerCase() !== "full") {
+          const message = `Passes available on ${date}: ${info.capacity}`;
           alarm.play().catch((err) =>
             console.warn("Unable to autoplay sound:", err)
           );
 
-          notify(`Passes available on ${date}: ${info.capacity}`);
-          alert(`Availability on ${date}: ${info.capacity}`);
-          console.log(`Availability on ${date}:`, info);
+          sendTelegramMessage(message);
+
+          notify(message);
+          alert(message);
+          console.log(message);
           found = true;
         } else {
           console.log(`No passes on ${date} (status: ${info?.capacity || "-"})`);
