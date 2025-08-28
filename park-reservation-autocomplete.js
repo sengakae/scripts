@@ -16,6 +16,18 @@
 
   const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
+  function triggerEvent(el, type) {
+    const event = new Event(type, { bubbles: true, cancelable: true });
+    el.dispatchEvent(event);
+  }
+
+
+  function triggerTouchClick(el) {
+    triggerEvent(el, "touchstart");
+    triggerEvent(el, "touchend");
+    triggerEvent(el, "click");
+  }
+
   function waitForSelector(selector, timeout = 10000) {
     return new Promise((resolve, reject) => {
       const interval = 200;
@@ -40,7 +52,7 @@
       console.log("Starting auto-selection script");
 
       const dateBtn = await waitForSelector(".date-input__calendar-btn");
-      dateBtn.click();
+      triggerTouchClick(dateBtn);
       console.log("Clicked date button");
       await delay(200);
 
@@ -48,7 +60,7 @@
         `div[role="gridcell"][aria-label="${TARGET_DATE_LABEL}"] div[ngbdatepickerdayview]`
       );
       if (targetCell) {
-        targetCell.click();
+        triggerTouchClick(targetCell);
         targetCell.dispatchEvent(new Event("input", { bubbles: true }));
         targetCell.dispatchEvent(new Event("change", { bubbles: true }));
         console.log("Date selected");
