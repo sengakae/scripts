@@ -23,6 +23,19 @@
     "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
   );
 
+  function notify(message) {
+    if (Notification.permission === "granted") {
+      new Notification(message);
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          new Notification(message);
+        }
+      });
+    }
+    console.log("Notification:", message);
+  }
+
   async function checkAvailability() {
     try {
       const res = await fetch(API_URL, { cache: "no-store" });
@@ -31,12 +44,12 @@
       let found = false;
       for (const date of TARGET_DATES) {
         const info = data[date]?.DAY;
-        if (info && info.capacity && info.capacity.toLowerCase() !== "full") {
-            
+        if (info && info.capacity && info.capacity.toLowerCase() !== "full") {            
           alarm.play().catch((err) =>
             console.warn("Unable to autoplay sound:", err)
           );
-            
+
+          notify(`Passes available on ${date}: ${info.capacity}`);
           alert(`Availability on ${date}: ${info.capacity}`);
           console.log(`Availability on ${date}:`, info);
           found = true;
@@ -49,10 +62,11 @@
         setTimeout(checkAvailability, POLL_INTERVAL);
       } else {
         console.log("Found passes, stopped polling.");
+        return;
       }
     } catch (err) {
       console.error("Error checking availability:", err);
-      setTimeout(checkAvailability, POLL_INTERVAL); // retry
+      setTimeout(checkAvailability, POLL_INTERVAL);
     }
   }
 
