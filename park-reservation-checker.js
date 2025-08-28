@@ -43,7 +43,7 @@
       }
     } catch (err) {
       console.error("Error checking availability:", err);
-      setTimeout(checkAvailability, POLL_INTERVAL); // retry
+      setTimeout(checkAvailability, POLL_INTERVAL);
     }
   }
 
