@@ -3,7 +3,7 @@
 // @namespace    http://tampermonkey.net/
 // @version      1.0
 // @description  Polls Day Pass API for pass availability
-// @match        *://*/*
+// @match        https://reserve.bcparks.ca/dayuse/*
 // @grant        none
 // ==/UserScript==
 
@@ -14,10 +14,14 @@
   const API_URL =
     "https://d757dzcblh.execute-api.ca-central-1.amazonaws.com/api/reservation?facility=Joffre%20Lakes&park=0363";
 
-  // Which date(s) to check (2 days max in advance)
+  // Which date(s) to check
   const TARGET_DATES = ["2025-08-30"];
 
   const POLL_INTERVAL = 3000;
+    
+  const alarm = new Audio(
+    "https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
+  );
 
   async function checkAvailability() {
     try {
@@ -28,6 +32,11 @@
       for (const date of TARGET_DATES) {
         const info = data[date]?.DAY;
         if (info && info.capacity && info.capacity.toLowerCase() !== "full") {
+            
+          alarm.play().catch((err) =>
+            console.warn("Unable to autoplay sound:", err)
+          );
+            
           alert(`Availability on ${date}: ${info.capacity}`);
           console.log(`Availability on ${date}:`, info);
           found = true;
@@ -43,7 +52,7 @@
       }
     } catch (err) {
       console.error("Error checking availability:", err);
-      setTimeout(checkAvailability, POLL_INTERVAL);
+      setTimeout(checkAvailability, POLL_INTERVAL); // retry
     }
   }
 
