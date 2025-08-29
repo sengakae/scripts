@@ -98,17 +98,17 @@
       }
 
       const passCountSelect = await waitForSelector('#passCount');
-      const options = passCountSelect.querySelectorAll('option');
+      const options = Array.from(passCountSelect.querySelectorAll('option'));
 
-      const lastOption = options[options.length - 1];
+      const lastEnabledOption = [...options].reverse().find(opt => !opt.disabled);
 
-      if (lastOption && !lastOption.disabled) {
-        passCountSelect.value = lastOption.value;
+      if (lastEnabledOption) {
+        passCountSelect.value = lastEnabledOption.value;
 
         passCountSelect.dispatchEvent(new Event("input", { bubbles: true }));
         passCountSelect.dispatchEvent(new Event("change", { bubbles: true }));
 
-        console.log("Selected last pass count:", lastOption.textContent.trim());
+        console.log("Selected last pass count:", lastEnabledOption.textContent.trim());
 
         const nextButton = [...document.querySelectorAll("button.btn-primary")]
           .find((btn) => btn.textContent.trim().toLowerCase() === "next");
