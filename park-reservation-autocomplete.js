@@ -14,24 +14,16 @@
   const TARGET_DATE_LABEL = "Sunday, August 31, 2025";
   const TARGET_PASS_TEXT = "Joffre Lakes - Trail";
 
-  const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+  const triggerEvent = (el, type) => el.dispatchEvent(new Event(type, { bubbles: true }));
 
-  function triggerEvent(el, type) {
-    const event = new Event(type, { bubbles: true, cancelable: true });
-    el.dispatchEvent(event);
-  }
+  const triggerClick = (el) => {
+    ["touchstart", "touchend", "click"].forEach(evt => triggerEvent(el, evt));
+  };
 
-
-  function triggerTouchClick(el) {
-    triggerEvent(el, "touchstart");
-    triggerEvent(el, "touchend");
-    triggerEvent(el, "click");
-  }
-
-  function waitForSelector(selector, timeout = 10000) {
+  async function waitForSelector(selector, timeout = 10000) {
+    const interval = 200;
+    let waited = 0;
     return new Promise((resolve, reject) => {
-      const interval = 200;
-      let waited = 0;
       const timer = setInterval(() => {
         const el = document.querySelector(selector);
         if (el) {
@@ -47,86 +39,71 @@
     });
   }
 
-  async function selectDateAndPass() {
+  async function selectDate() {
+    const dateBtn = await waitForSelector(".date-input__calendar-btn");
+    triggerClick(dateBtn);
+
+    const targetCell = await waitForSelector(`div[aria-label="${TARGET_DATE_LABEL}"]`);
+    triggerClick(targetCell);
+    console.log("Date selected:", TARGET_DATE_LABEL);
+  }
+
+  async function selectPassType() {
+    const selectEl = await waitForSelector("#passType");
+    const option = Array.from(selectEl.options).find(opt =>
+      opt.textContent.trim().toLowerCase().includes(TARGET_PASS_TEXT.toLowerCase())
+    );
+    if (!option) throw new Error("Target pass type not found");
+    selectEl.value = option.value;
+    triggerEvent(selectEl, "change");
+    console.log("Pass type selected:", option.textContent.trim());
+  }
+
+  async function selectVisitTime() {
+    await waitForSelector('input[type="radio"][name="visitTime"]');
+    const radioInputs = Array.from(document.querySelectorAll('input[type="radio"][name="visitTime"]'));
+    const firstAvailable = radioInputs.find(i => !i.disabled);
+    if (!firstAvailable) throw new Error("No available visit times found");
+    firstAvailable.checked = true;
+    triggerEvent(firstAvailable, "change");
+    triggerClick(firstAvailable);
+    console.log("Visit time selected:", firstAvailable.value);
+  }
+
+  async function selectPassCountAndNext() {
+    const passCountSelect = await waitForSelector('#passCount');
+      const options = Array.from(passCountSelect.options).filter(opt => !opt.disabled);
+      if (options.length === 0) throw new Error("No valid pass count options");
+      const lastOption = options[options.length - 1];
+      passCountSelect.value = lastOption.value;
+      triggerEvent(passCountSelect, "change");
+      console.log("Pass count selected:", lastOption.textContent.trim());
+
+      await waitForSelector("button.btn-primary");
+      const nextButton = Array.from(document.querySelectorAll("button.btn-primary"))
+          .find(btn => btn.textContent.trim().toLowerCase().includes("next"));
+      if (!nextButton) throw new Error("Next button not found");
+      triggerClick(nextButton);
+      console.log("Clicked Next button");
+  }
+
+  async function autoFillReservation() {
     try {
-      console.log("Starting auto-selection script");
-
-      const dateBtn = await waitForSelector(".date-input__calendar-btn");
-      triggerTouchClick(dateBtn);
-      console.log("Clicked date button");
-
-      const targetCell = document.querySelector(
-        `div[role="gridcell"][aria-label="${TARGET_DATE_LABEL}"] div[ngbdatepickerdayview]`
-      );
-      if (targetCell) {
-        triggerTouchClick(targetCell);
-        targetCell.dispatchEvent(new Event("input", { bubbles: true }));
-        targetCell.dispatchEvent(new Event("change", { bubbles: true }));
-        console.log("Date selected");
-        await delay(200);
-      } else {
-        console.warn("Target date not found");
-      }
-
-      const passTypeSelect = await waitForSelector("#passType");
-      const option = [...passTypeSelect.options].find(
-        (opt) => opt.textContent.trim() === TARGET_PASS_TEXT
-      );
-      if (option) {
-        passTypeSelect.value = option.value;
-        passTypeSelect.dispatchEvent(new Event("change", { bubbles: true }));
-        console.log("Pass type selected");
-        await delay(200);
-      } else {
-        console.warn("Target pass type not found");
-      }
-
-      await waitForSelector('input[type="radio"][name="visitTime"]');
-        
-      const visitTimeInputs = document.querySelectorAll(
-        'input[type="radio"][name="visitTime"]'
-      );
-      const firstAvailable = [...visitTimeInputs].find((input) => !input.disabled);
-
-      if (firstAvailable) {
-        firstAvailable.checked = true;
-        firstAvailable.dispatchEvent(new Event("input", { bubbles: true }));
-        firstAvailable.dispatchEvent(new Event("change", { bubbles: true }));
-        triggerTouchClick(firstAvailable);
-        console.log("Visit time selected:", firstAvailable.value);
-      } else {
-        console.warn("No available visit times found");
-      }
-
-      const passCountSelect = await waitForSelector('#passCount');
-      const options = Array.from(passCountSelect.querySelectorAll('option'));
-
-      const lastEnabledOption = [...options].reverse().find(opt => !opt.disabled);
-
-      if (lastEnabledOption) {
-        passCountSelect.value = lastEnabledOption.value;
-
-        passCountSelect.dispatchEvent(new Event("input", { bubbles: true }));
-        passCountSelect.dispatchEvent(new Event("change", { bubbles: true }));
-
-        console.log("Selected last pass count:", lastEnabledOption.textContent.trim());
-
-        const nextButton = [...document.querySelectorAll("button.btn-primary")]
-          .find((btn) => btn.textContent.trim().toLowerCase() === "next");
-
-        if (nextButton) {
-          triggerTouchClick(nextButton);
-          console.log("Clicked Next button");
-        } else {
-          console.warn("Next button not found");
-        }
-      } else {
-        console.warn("No valid option found in passCount dropdown");
-      }
+      console.log("Starting Park Reservation Autofill");
+      await selectDate();
+      await selectPassType();
+      await selectVisitTime();
+      await selectPassCountAndNext();
+      console.log("Autofill completed");
     } catch (err) {
-      console.error("Script error:", err);
+      console.error("Autofill error:", err);
     }
   }
 
-  window.addEventListener("load", selectDateAndPass);
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    autoFillReservation();
+  } else {
+    window.addEventListener("DOMContentLoaded", autoFillReservation);
+  }
+
 })();
