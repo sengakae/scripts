@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Park Reservation Page Auto Complete
+// @name         Park Reservation Page Autofill
 // @namespace    http://tampermonkey.net/
 // @version      1.0
 // @description  Automatically selects a date and pass type when visiting the Joffre Lakes reservation page
@@ -11,7 +11,7 @@
   'use strict';
 
   // Constants to set for target park reservation
-  const TARGET_DATE_LABEL = "Saturday, August 30, 2025";
+  const TARGET_DATE_LABEL = "Sunday, August 31, 2025";
   const TARGET_PASS_TEXT = "Joffre Lakes - Trail";
 
   const delay = (ms) => new Promise((res) => setTimeout(res, ms));
@@ -54,7 +54,6 @@
       const dateBtn = await waitForSelector(".date-input__calendar-btn");
       triggerTouchClick(dateBtn);
       console.log("Clicked date button");
-      await delay(200);
 
       const targetCell = document.querySelector(
         `div[role="gridcell"][aria-label="${TARGET_DATE_LABEL}"] div[ngbdatepickerdayview]`
@@ -81,6 +80,48 @@
         console.warn("Target pass type not found");
       }
 
+      await waitForSelector('input[type="radio"][name="visitTime"]');
+        
+      const visitTimeInputs = document.querySelectorAll(
+        'input[type="radio"][name="visitTime"]'
+      );
+      const firstAvailable = [...visitTimeInputs].find((input) => !input.disabled);
+
+      if (firstAvailable) {
+        firstAvailable.checked = true;
+        firstAvailable.dispatchEvent(new Event("input", { bubbles: true }));
+        firstAvailable.dispatchEvent(new Event("change", { bubbles: true }));
+        triggerTouchClick(firstAvailable);
+        console.log("Visit time selected:", firstAvailable.value);
+      } else {
+        console.warn("No available visit times found");
+      }
+
+      const passCountSelect = await waitForSelector('#passCount');
+      const options = passCountSelect.querySelectorAll('option');
+
+      const lastOption = options[options.length - 1];
+
+      if (lastOption && !lastOption.disabled) {
+        passCountSelect.value = lastOption.value;
+
+        passCountSelect.dispatchEvent(new Event("input", { bubbles: true }));
+        passCountSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+        console.log("Selected last pass count:", lastOption.textContent.trim());
+
+        const nextButton = [...document.querySelectorAll("button.btn-primary")]
+          .find((btn) => btn.textContent.trim().toLowerCase() === "next");
+
+        if (nextButton) {
+          triggerTouchClick(nextButton);
+          console.log("Clicked Next button");
+        } else {
+          console.warn("Next button not found");
+        }
+      } else {
+        console.warn("No valid option found in passCount dropdown");
+      }
     } catch (err) {
       console.error("Script error:", err);
     }
