@@ -76,6 +76,7 @@
         passTypeSelect.value = option.value;
         passTypeSelect.dispatchEvent(new Event("change", { bubbles: true }));
         console.log("Pass type selected");
+        await delay(200);
       } else {
         console.warn("Target pass type not found");
       }
