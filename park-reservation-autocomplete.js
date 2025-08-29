@@ -2,7 +2,7 @@
 // @name         Park Reservation Page Autofill
 // @namespace    http://tampermonkey.net/
 // @version      1.0
-// @description  Automatically selects a date and pass type when visiting the Joffre Lakes reservation page
+// @description  Automatically fills out the reservation page flow when loaded onto the page.
 // @match        https://reserve.bcparks.ca/dayuse/*
 // @grant        none
 // ==/UserScript==
