@@ -112,10 +112,36 @@
     }
   }
 
+  async function init() {
+    const now = new Date();
+    const startTime = new Date();
+    startTime.setHours(6, 59, 55, 0);
+
+    if (now < startTime) {
+      const timeUntilStart = startTime.getTime() - now.getTime();
+      console.log(`Waiting ${(timeUntilStart / 1000).toFixed(1)}s until sync window opens at 6:59:55 AM...`);
+      setTimeout(() => { window.location.reload(); }, timeUntilStart);
+      return;
+    }
+
+    console.log("Inside target window. Inspecting DOM for booking elements...");
+    
+    const formIndicator = document.querySelector(".date-input__calendar-btn");
+
+    if (!formIndicator) {
+      console.log("Form elements not found yet. Retrying in 5 seconds...");
+      setTimeout(() => { window.location.reload(); }, 5000);
+      return;
+    }
+
+    console.log("Booking portal is live.");
+    await autoFillReservation();
+  }
+
   if (document.readyState === "complete" || document.readyState === "interactive") {
-    autoFillReservation();
+    init();
   } else {
-    window.addEventListener("DOMContentLoaded", autoFillReservation);
+    window.addEventListener("DOMContentLoaded", init);
   }
 
 })();
