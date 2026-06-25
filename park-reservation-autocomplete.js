@@ -10,8 +10,20 @@
 (function () {
   'use strict';
 
+  const getTargetDateLabel = (daysAhead = 2) => {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + daysAhead);
+
+    return new Intl.DateTimeFormat('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(targetDate);
+  };
+
   // Constants to set for target park reservation
-  const TARGET_DATE_LABEL = "Sunday, August 31, 2025";
+  const TARGET_DATE_LABEL = getTargetDateLabel(2);
   const TARGET_PASS_TEXT = "Joffre Lakes - Trail";
 
   const triggerEvent = (el, type) => el.dispatchEvent(new Event(type, { bubbles: true }));

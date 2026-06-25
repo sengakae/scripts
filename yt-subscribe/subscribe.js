@@ -5,7 +5,7 @@ import { google } from 'googleapis';
 
 const SCOPES = ['https://www.googleapis.com/auth/youtube'];
 const TOKEN_PATH = 'token.json';
-const CSV_FILE_PATH = 'subscriptions.csv'; 
+const CSV_FILE_PATH = 'failed_links.csv'; 
 
 const loadChannelsFromCSV = async (filePath) => {
     const channels = [];
