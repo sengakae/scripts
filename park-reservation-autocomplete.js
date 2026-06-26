@@ -32,7 +32,7 @@
     ["touchstart", "touchend", "click"].forEach(evt => triggerEvent(el, evt));
   };
 
-  async function waitForSelector(selector, timeout = 10000) {
+  async function waitForSelector(selector, timeout = 5000) {
     const interval = 200;
     let waited = 0;
     return new Promise((resolve, reject) => {
@@ -125,12 +125,13 @@
     }
 
     console.log("Inside target window. Inspecting DOM for booking elements...");
-    
-    const formIndicator = document.querySelector(".date-input__calendar-btn");
 
-    if (!formIndicator) {
-      console.log("Form elements not found yet. Retrying in 5 seconds...");
-      setTimeout(() => { window.location.reload(); }, 5000);
+    let formIndicator;
+    try {
+      formIndicator = await waitForSelector(".date-input__calendar-btn");
+    } catch (err) {
+      console.error("Form indicator not found:", err);
+      window.location.reload();
       return;
     }
 
