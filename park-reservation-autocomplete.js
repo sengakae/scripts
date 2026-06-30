@@ -126,16 +126,25 @@
 
     console.log("Inside target window. Inspecting DOM for booking elements...");
 
-    let formIndicator;
     try {
-      formIndicator = await waitForSelector(".date-input__calendar-btn");
+      const calendarBtn = await waitForSelector(".date-input__calendar-btn");
+      calendarBtn.click();
+      console.log("Calendar dropdown opened. Verifying date status...");
+
+      const dateSelector = `.ngb-dp-day[aria-label="${TARGET_DATE_LABEL}"]`;
+      const dateParent = await waitForSelector(dateSelector);
+      const dateElement = dateParent.children[0];
+
+      if (dateElement.classList.contains("text-muted")) {
+        throw new Error(`Target date (${TARGET_DATE_LABEL}) is currently disabled.`);
+      }
     } catch (err) {
-      console.error("Form indicator not found:", err);
-      window.location.reload();
+      console.error("Target date not available yet:", err.message || err);
+      setTimeout(() => { window.location.reload(); }, 5000);
       return;
     }
 
-    console.log("Booking portal is live.");
+    console.log("Booking portal is live and target date is available!");
     await autoFillReservation();
   }
 
